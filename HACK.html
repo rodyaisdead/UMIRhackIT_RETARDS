@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CyberShield — Симулятор кибербезопасности</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;
+  --green:#2ea043;--green2:#3fb950;--green3:#56d364;
+  --red:#f85149;--yellow:#e3b341;--blue:#58a6ff;--purple:#bc8cff;
+  --text:#e6edf3;--text2:#8b949e;--border:#30363d;
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex;flex-direction:column}
+ 
+/* LOGIN */
+#loginScreen{align-items:center;justify-content:center;background:radial-gradient(ellipse at top,#0d2818 0%,var(--bg) 60%)}
+.logo-big{font-size:3rem;font-weight:900;color:var(--green3);letter-spacing:-2px;margin-bottom:.3rem}
+.logo-sub{color:var(--text2);margin-bottom:2.5rem;font-size:.95rem}
+.auth-box{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:2rem;width:100%;max-width:400px}
+.tabs{display:flex;margin-bottom:1.5rem;background:var(--bg3);border-radius:8px;padding:3px}
+.tab{flex:1;padding:.5rem;text-align:center;cursor:pointer;border-radius:6px;color:var(--text2);font-size:.9rem;transition:.2s}
+.tab.active{background:var(--bg2);color:var(--text);font-weight:600}
+.form-group{margin-bottom:.9rem}
+label{display:block;font-size:.82rem;color:var(--text2);margin-bottom:.35rem}
+input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:.65rem 1rem;color:var(--text);font-size:.92rem;outline:none;transition:.2s}
+input:focus{border-color:var(--green)}
+.btn{width:100%;padding:.75rem;background:var(--green);border:none;border-radius:8px;color:#fff;font-size:.95rem;font-weight:600;cursor:pointer;transition:.2s;margin-top:.3rem}
+.btn:hover{background:var(--green2)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-outline:hover{border-color:var(--green);background:var(--bg3)}
+.btn-yellow{background:var(--yellow);color:#000}
+.btn-yellow:hover{filter:brightness(1.1)}
+.err{color:var(--red);font-size:.82rem;margin-top:.4rem;display:none}
+ 
+/* NAV */
+nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:.7rem 1.2rem;display:flex;align-items:center;gap:.8rem;position:sticky;top:0;z-index:100;flex-wrap:wrap}
+.nav-logo{font-weight:900;color:var(--green3);font-size:1.1rem;letter-spacing:-1px;flex:1}
+.hp-wrap{display:flex;align-items:center;gap:.4rem}
+.hp-lbl{font-size:.75rem;color:var(--text2)}
+.hp-bar{width:100px;height:7px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.hp-fill{height:100%;background:var(--green3);transition:width .5s,background .5s;border-radius:4px}
+.hp-num{font-size:.82rem;font-weight:700;color:var(--green3);min-width:32px}
+.nav-score{font-size:.82rem;color:var(--yellow);font-weight:700}
+.streak-badge{font-size:.78rem;background:#2d1f00;border:1px solid var(--yellow);border-radius:6px;padding:.15rem .5rem;color:var(--yellow)}
+.nav-av{width:30px;height:30px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;cursor:pointer;flex-shrink:0}
+.timer-badge{font-size:.82rem;background:#2d0f0f;border:1px solid var(--red);border-radius:6px;padding:.15rem .6rem;color:var(--red);font-weight:700;display:none}
+ 
+/* DASH */
+.dash-inner{padding:1.2rem;max-width:920px;margin:0 auto;width:100%}
+.welcome-banner{background:linear-gradient(135deg,#0d2818,#1a3a2a);border:1px solid var(--green);border-radius:12px;padding:1.3rem;margin-bottom:1.2rem;display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap}
+.av-big{width:54px;height:54px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:900;flex-shrink:0}
+.welcome-text h2{font-size:1.2rem;margin-bottom:.25rem}
+.welcome-text p{color:var(--text2);font-size:.85rem}
+.league-badge{margin-left:auto;background:var(--bg3);border:1px solid var(--yellow);border-radius:8px;padding:.5rem .9rem;text-align:center}
+.league-badge .l-icon{font-size:1.4rem}
+.league-badge .l-name{color:var(--yellow);font-weight:700;font-size:.82rem}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;margin-bottom:1.2rem}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:.9rem;text-align:center}
+.stat-val{font-size:1.6rem;font-weight:900;color:var(--green3)}
+.stat-lbl{font-size:.75rem;color:var(--text2);margin-top:.2rem}
+.section-title{font-size:.82rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.8rem}
+.missions-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.9rem;margin-bottom:1.2rem}
+.mission-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.1rem;cursor:pointer;transition:.2s;position:relative;overflow:hidden}
+.mission-card:hover:not(.locked){border-color:var(--green);transform:translateY(-2px)}
+.mission-card.locked{opacity:.5;cursor:not-allowed}
+.mission-card.completed{border-color:var(--green)}
+.mission-card.completed::after{content:'✓';position:absolute;top:.7rem;right:.8rem;color:var(--green);font-weight:900;font-size:1rem}
+.m-icon{font-size:1.8rem;margin-bottom:.6rem}
+.m-name{font-weight:700;margin-bottom:.25rem;font-size:.95rem}
+.m-desc{font-size:.8rem;color:var(--text2);line-height:1.4}
+.tags{display:flex;flex-wrap:wrap;gap:.25rem;margin-top:.6rem}
+.tag{font-size:.7rem;background:var(--bg3);border:1px solid #f8514944;border-radius:4px;padding:.1rem .4rem;color:var(--red)}
+.tag.g{border-color:#2ea04344;color:var(--green3)}
+.tag.b{border-color:#58a6ff44;color:var(--blue)}
+.m-progress{margin-top:.7rem;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.m-progress-fill{height:100%;background:var(--green);border-radius:2px;transition:width .4s}
+ 
+/* SCENARIO */
+.sc-inner{padding:1.2rem;max-width:820px;margin:0 auto;width:100%}
+.sc-hdr{display:flex;align-items:center;gap:.6rem;margin-bottom:1rem}
+.sc-loc{font-size:.82rem;color:var(--text2)}
+.sc-prog{flex:1;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.sc-prog-fill{height:100%;background:var(--green);transition:width .4s;border-radius:2px}
+.sc-num{font-size:.82rem;color:var(--text2)}
+.hint-btn{font-size:.75rem;background:var(--bg3);border:1px solid var(--yellow);border-radius:6px;padding:.25rem .6rem;color:var(--yellow);cursor:pointer;transition:.2s;flex-shrink:0}
+.hint-btn:hover{background:#2d1f00}
+.hint-box{background:#1a1600;border-left:3px solid var(--yellow);border-radius:0 8px 8px 0;padding:.7rem .9rem;font-size:.83rem;line-height:1.5;margin-bottom:.8rem;color:var(--yellow);display:none}
+ 
+.narrative-box{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.1rem;margin-bottom:1rem;line-height:1.6}
+.narrative-title{font-size:.72rem;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.6rem;display:flex;align-items:center;gap:.4rem}
+.attack-badge{background:#2d0a0a;border:1px solid var(--red);border-radius:4px;padding:.1rem .4rem;font-size:.68rem;color:var(--red)}
+ 
+/* sims */
+.email-sim{background:var(--bg3);border-radius:8px;padding:.9rem;margin-top:.7rem;font-size:.87rem}
+.email-hdr{border-bottom:1px solid var(--border);padding-bottom:.6rem;margin-bottom:.6rem}
+.ef{display:flex;gap:.4rem;margin-bottom:.25rem;font-size:.8rem}
+.ef span:first-child{color:var(--text2);min-width:38px}
+.email-body{line-height:1.5;white-space:pre-line}
+.elink{color:var(--blue);text-decoration:underline}
+.elink.bad{color:var(--red)}
+.msg-sim{background:var(--bg3);border-radius:8px;padding:.9rem;margin-top:.7rem}
+.msg{background:var(--bg2);border-radius:8px;padding:.5rem .8rem;margin-bottom:.5rem;max-width:87%;font-size:.85rem;line-height:1.4;border-left:3px solid var(--yellow)}
+.msg-sndr{font-size:.72rem;color:var(--green3);margin-bottom:.15rem;font-weight:600}
+.sms-sim{background:var(--bg3);border-radius:8px;padding:.9rem;margin-top:.7rem}
+.sms-bbl{background:#1c2d1e;border:1px solid #2ea04344;border-radius:12px;padding:.7rem .9rem;font-size:.87rem;line-height:1.5}
+.sms-sndr{font-size:.75rem;color:var(--text2);margin-bottom:.4rem}
+.wifi-sim{background:var(--bg3);border-radius:8px;padding:.9rem;margin-top:.7rem}
+.wifi-list{list-style:none}
+.wifi-item{display:flex;align-items:center;justify-content:space-between;padding:.5rem .7rem;border-radius:6px;margin-bottom:.25rem;font-size:.85rem}
+.wifi-item.bad{background:#2d1a1a;border:1px solid #f8514944}
+.wifi-item.ok{background:#1a2d1a;border:1px solid #2ea04344}
+.wifi-item.neu{background:var(--bg2);border:1px solid var(--border)}
+.info-box{background:var(--bg3);border-left:3px solid var(--blue);border-radius:0 8px 8px 0;padding:.8rem .9rem;margin-top:.7rem;font-size:.85rem;line-height:1.5}
+.warn-box{background:#1a1200;border-left:3px solid var(--yellow);border-radius:0 8px 8px 0;padding:.8rem .9rem;margin-top:.7rem;font-size:.85rem;line-height:1.5;color:#c9aa71}
+.qr-sim{background:var(--bg3);border-radius:8px;padding:1rem;margin-top:.7rem;text-align:center}
+.qr-img{font-size:5rem;margin:.5rem 0}
+.qr-url{background:var(--bg2);border-radius:6px;padding:.4rem .8rem;font-size:.8rem;font-family:monospace;color:var(--red);margin-top:.4rem;display:inline-block}
+/* PERMISSIONS */
+.perms-list{margin-top:.7rem;display:grid;gap:.45rem}
+.perm-item{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:.6rem .9rem;cursor:pointer;display:flex;align-items:center;gap:.7rem;transition:.2s;font-size:.87rem}
+.perm-item:hover{border-color:var(--blue);background:var(--bg2)}
+.perm-item.wrong{border-color:var(--green)!important;background:#0d2818!important}
+.perm-item.correct-bad{border-color:var(--red)!important;background:#2d0f0f!important;animation:shake .3s}
+.perm-item.revealed-bad{border-color:var(--red);background:#2d0f0f}
+.perm-icon{font-size:1.2rem;flex-shrink:0}
+.perm-name{flex:1;font-weight:600}
+.perm-hint{font-size:.75rem;color:var(--text2);display:none}
+/* DEEPFAKE */
+.deepfake-sim{background:var(--bg3);border-radius:8px;padding:.9rem;margin-top:.7rem}
+.df-video{background:#000;border-radius:8px;height:120px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;margin-bottom:.7rem}
+.df-face{font-size:3.5rem;filter:blur(1.5px);opacity:.85}
+.df-badge{position:absolute;top:.4rem;right:.4rem;background:#f8514988;border:1px solid var(--red);border-radius:4px;font-size:.68rem;padding:.1rem .35rem;color:#fff}
+.df-clue{display:flex;align-items:flex-start;gap:.5rem;padding:.4rem 0;border-bottom:1px solid var(--border);font-size:.82rem;color:var(--text2)}
+.df-clue:last-child{border-bottom:none}
+.df-clue::before{content:"⚠️";flex-shrink:0}
+/* 2FA METHODS */
+.twofa-list{margin-top:.7rem;display:grid;gap:.45rem}
+.twofa-item{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:.7rem 1rem;cursor:pointer;display:flex;align-items:center;gap:.8rem;transition:.2s;font-size:.87rem}
+.twofa-item:hover{border-color:var(--blue);background:var(--bg2)}
+.twofa-level{font-size:.72rem;padding:.15rem .4rem;border-radius:4px;flex-shrink:0}
+.twofa-level.weak{background:#2d0f0f;color:var(--red)}
+.twofa-level.strong{background:#0d2818;color:var(--green3)}
+.twofa-level.best{background:#1a1200;color:var(--yellow)}
+ 
+/* URL INSPECTOR (interactive) */
+.url-inspector-wrap{margin-top:.8rem}
+.url-inspector-label{font-size:.8rem;color:var(--text2);margin-bottom:.5rem}
+.url-inspector{background:var(--bg3);border-radius:8px;padding:.8rem 1rem;font-family:monospace;font-size:.95rem;display:flex;flex-wrap:wrap;gap:0;align-items:center;line-height:2}
+.url-part{cursor:pointer;border-radius:4px;padding:.1rem .2rem;transition:.15s;border:1px solid transparent}
+.url-part:hover{background:#ffffff11;border-color:var(--blue)}
+.url-part.clicked-wrong{background:#2d0f0f;border-color:var(--red);animation:shake .3s}
+.url-part.clicked-right{background:#0d2818;border-color:var(--green);animation:pulse-g .4s}
+.url-part.revealed-bad{background:#2d0f0f;border-color:var(--red)}
+.url-part.revealed-ok{background:#0d2818;border-color:var(--green);color:var(--green3)}
+.url-inspector-hint{font-size:.78rem;color:var(--text2);margin-top:.4rem}
+ 
+/* PASSWORD challenge */
+.pw-list{margin-top:.7rem;display:grid;gap:.5rem}
+.pw-item{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:.7rem 1rem;cursor:pointer;font-family:monospace;font-size:.9rem;transition:.2s;display:flex;align-items:center;justify-content:space-between}
+.pw-item:hover{border-color:var(--blue);background:var(--bg2)}
+.pw-strength{font-size:.75rem;padding:.1rem .4rem;border-radius:4px}
+.pw-strength.weak{background:#2d0f0f;color:var(--red)}
+.pw-strength.medium{background:#2d1f00;color:var(--yellow)}
+.pw-strength.strong{background:#0d2818;color:var(--green3)}
+ 
+/* CHOICES */
+.choices{display:grid;gap:.6rem;margin-top:.9rem}
+.q-label{font-size:.87rem;color:var(--text2);margin-bottom:.4rem;font-weight:600}
+.choice-btn{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:.85rem 1.1rem;text-align:left;cursor:pointer;transition:.2s;color:var(--text);font-size:.88rem;line-height:1.4;display:flex;align-items:flex-start;gap:.5rem}
+.choice-btn:hover:not(:disabled){border-color:var(--blue);background:var(--bg3)}
+.choice-btn.correct{border-color:var(--green)!important;background:#0d2818!important;animation:pulse-g .4s}
+.choice-btn.wrong{border-color:var(--red)!important;background:#2d0f0f!important;animation:shake .4s}
+.choice-btn:disabled{cursor:default}
+.c-letter{width:22px;height:22px;border-radius:4px;background:var(--bg3);text-align:center;line-height:22px;font-size:.75rem;font-weight:700;flex-shrink:0}
+ 
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@keyframes pulse-g{0%{box-shadow:0 0 0 0 #2ea04355}100%{box-shadow:0 0 0 8px transparent}}
+ 
+/* OUTCOME */
+.outcome-overlay{display:none;position:fixed;inset:0;background:#000d;z-index:200;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;padding-top:2rem}
+.outcome-overlay.show{display:flex}
+.outcome-box{background:var(--bg2);border-radius:16px;padding:1.8rem;max-width:520px;width:100%;border:2px solid var(--border);animation:slideUp .3s}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.oc-icon{font-size:2.8rem;text-align:center;margin-bottom:.8rem}
+.oc-title{font-size:1.25rem;font-weight:700;text-align:center;margin-bottom:.5rem}
+.oc-title.ok{color:var(--green3)}
+.oc-title.fail{color:var(--red)}
+.oc-explain{font-size:.87rem;color:var(--text2);line-height:1.6;margin-bottom:.7rem}
+.oc-tip{background:var(--bg3);border-left:3px solid var(--yellow);border-radius:0 8px 8px 0;padding:.7rem .9rem;font-size:.82rem;line-height:1.5;margin-bottom:.9rem}
+.oc-tip strong{color:var(--yellow)}
+.hp-chg{text-align:center;font-size:1rem;font-weight:700;margin-bottom:.8rem}
+.hp-chg.plus{color:var(--green3)}
+.hp-chg.minus{color:var(--red)}
+.conseq{background:#0a0000;border:1px solid var(--red);border-radius:8px;padding:.8rem;margin:.7rem 0;font-family:monospace;font-size:.78rem;color:var(--red);display:none}
+.conseq-line{opacity:0;animation:fLine .25s forwards}
+@keyframes fLine{to{opacity:1}}
+ 
+/* COMPLETE */
+#completeScreen{align-items:center;justify-content:center;flex-direction:column;padding:2rem;text-align:center}
+.comp-icon{font-size:4.5rem;margin-bottom:.8rem;animation:bounce .6s}
+@keyframes bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+.comp-title{font-size:1.8rem;font-weight:900;color:var(--green3);margin-bottom:.4rem}
+.comp-sub{color:var(--text2);margin-bottom:1.5rem;font-size:.9rem}
+.reward-card{background:var(--bg2);border:1px solid var(--yellow);border-radius:12px;padding:1.3rem;width:100%;max-width:420px;margin-bottom:1.2rem}
+.rw-row{display:flex;justify-content:space-between;align-items:center;padding:.45rem 0;border-bottom:1px solid var(--border);font-size:.87rem}
+.rw-row:last-child{border-bottom:none}
+.rw-val{font-weight:700;color:var(--yellow)}
+ 
+/* CERT */
+.cert-modal{display:none;position:fixed;inset:0;background:#000d;z-index:300;align-items:center;justify-content:center;padding:1rem}
+.cert-modal.show{display:flex}
+.cert-wrap{background:var(--bg2);border-radius:16px;padding:2rem;max-width:520px;width:100%;animation:slideUp .4s;position:relative}
+.cert-card{background:linear-gradient(135deg,#0a1f10,#162d1e);border:2px solid var(--green);border-radius:12px;padding:1.8rem;text-align:center;margin-bottom:1.2rem}
+.cert-logo{font-size:1.3rem;font-weight:900;color:var(--green3);margin-bottom:.3rem}
+.cert-sub{font-size:.78rem;color:var(--text2);margin-bottom:1rem}
+.cert-name{font-size:1.7rem;font-weight:900;color:var(--text);margin-bottom:.4rem}
+.cert-seal{font-size:3.5rem;margin:.5rem 0}
+.cert-desc{font-size:.82rem;color:var(--text2);line-height:1.5;margin-bottom:.8rem}
+.cert-id{font-size:.72rem;color:var(--text2);font-family:monospace;border-top:1px solid var(--border);padding-top:.6rem;margin-top:.6rem}
+.email-sent-banner{background:#0d2818;border:1px solid var(--green);border-radius:10px;padding:.9rem 1.1rem;display:flex;align-items:center;gap:.7rem;margin-bottom:1rem;font-size:.88rem}
+.email-sent-banner .icon{font-size:1.5rem}
+.email-sent-banner strong{color:var(--green3)}
+ 
+/* LEADERBOARD */
+.lb-inner{padding:1.2rem;max-width:700px;margin:0 auto;width:100%}
+.lb-title{font-size:1.4rem;font-weight:900;margin-bottom:1.2rem}
+.lb-row{display:flex;align-items:center;gap:.8rem;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:.8rem 1rem;margin-bottom:.5rem;transition:.2s}
+.lb-row.me{border-color:var(--green);background:#0d2818}
+.lb-rank{font-size:1rem;font-weight:900;min-width:28px;color:var(--text2)}
+.lb-av{width:34px;height:34px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0}
+.lb-name{flex:1;font-weight:600;font-size:.9rem}
+.lb-badge{font-size:.72rem;background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:.1rem .35rem;color:var(--text2)}
+.lb-score{font-weight:700;color:var(--yellow);font-size:.9rem}
+.lb-missions{font-size:.75rem;color:var(--text2)}
+ 
+/* TOAST */
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bg2);border:1px solid var(--green);border-radius:10px;padding:.7rem 1.2rem;font-size:.88rem;z-index:500;opacity:0;transition:.3s;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+ 
+@media(max-width:600px){
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .hp-bar{width:70px}
+}
+</style>
+</head>
+<body>
+ 
+<!-- LOGIN -->
+<div id="loginScreen" class="screen active">
+  <div style="text-align:center;padding:1.5rem 1rem">
+    <div class="logo-big">🛡 CyberShield</div>
+    <div class="logo-sub">Образовательный симулятор кибербезопасности · Банк Центр-Инвест</div>
+    <div class="auth-box">
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('login')">Войти</div>
+        <div class="tab" onclick="switchTab('register')">Регистрация</div>
+      </div>
+      <div id="loginForm">
+        <div class="form-group"><label>Логин</label><input id="lu" placeholder="Введите логин" value="demo"></div>
+        <div class="form-group"><label>Пароль</label><input type="password" id="lp" placeholder="Введите пароль" value="demo123"></div>
+        <div class="err" id="lErr">Неверный логин или пароль</div>
+        <button class="btn" onclick="doLogin()">Войти</button>
+        <div style="margin-top:.7rem;font-size:.78rem;color:var(--text2);text-align:center">Демо: <b>demo</b> / <b>demo123</b></div>
+      </div>
+      <div id="registerForm" style="display:none">
+        <div class="form-group"><label>Имя</label><input id="rn" placeholder="Ваше имя"></div>
+        <div class="form-group"><label>Логин</label><input id="ru" placeholder="Придумайте логин"></div>
+        <div class="form-group"><label>Email <span style="color:var(--text2)">(для сертификата)</span></label><input id="re" type="email" placeholder="your@email.com"></div>
+        <div class="form-group"><label>Пароль</label><input type="password" id="rp" placeholder="Мин. 6 символов"></div>
+        <div class="err" id="rErr">Заполните все поля</div>
+        <button class="btn" onclick="doRegister()">Создать аккаунт</button>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<!-- DASHBOARD -->
+<div id="dashScreen" class="screen">
+  <nav>
+    <div class="nav-logo">🛡 CyberShield</div>
+    <div class="hp-wrap"><span class="hp-lbl">HP</span><div class="hp-bar"><div class="hp-fill" id="navHpF"></div></div><span class="hp-num" id="navHpN">100</span></div>
+    <span class="nav-score" id="navSc">⭐ 0</span>
+    <span class="streak-badge" id="navStreak" style="display:none">🔥 0</span>
+    <div class="nav-av" id="navAv" onclick="showLeaderboard()" title="Рейтинг">A</div>
+    <button class="btn btn-outline" style="width:auto;padding:.35rem .7rem;font-size:.78rem;margin-top:0" onclick="confirmReset()">⟳ Сброс</button>
+  </nav>
+  <div class="dash-inner">
+    <div class="welcome-banner">
+      <div class="av-big" id="dashAv">A</div>
+      <div class="welcome-text">
+        <h2 id="dashHi">Привет!</h2>
+        <p id="dashSub">Выбери миссию чтобы начать</p>
+      </div>
+      <div class="league-badge">
+        <div class="l-icon" id="lgIcon">🥉</div>
+        <div class="l-name" id="lgName">Новичок</div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val" id="stScore">0</div><div class="stat-lbl">Очков</div></div>
+      <div class="stat-card"><div class="stat-val" id="stSucc">0%</div><div class="stat-lbl">Защит</div></div>
+      <div class="stat-card"><div class="stat-val" id="stMiss">0/4</div><div class="stat-lbl">Миссий</div></div>
+      <div class="stat-card"><div class="stat-val" id="stStreak">🔥0</div><div class="stat-lbl">Серия</div></div>
+    </div>
+    <div class="section-title">Миссии</div>
+    <div class="missions-grid" id="mGrid"></div>
+    <div class="section-title">Навыки</div>
+    <div id="skillsRow" style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.2rem"></div>
+    <div style="display:flex;gap:.8rem;flex-wrap:wrap">
+      <button class="btn btn-outline" style="max-width:180px" onclick="showLeaderboard()">📊 Рейтинг</button>
+      <button class="btn btn-outline" style="max-width:180px" id="dashCertBtn" onclick="showCertModal()" style="display:none">🏆 Сертификат</button>
+    </div>
+  </div>
+</div>
+ 
+<!-- SCENARIO -->
+<div id="scenarioScreen" class="screen">
+  <nav>
+    <div class="nav-logo">🛡 CyberShield</div>
+    <div class="hp-wrap"><span class="hp-lbl">HP</span><div class="hp-bar"><div class="hp-fill" id="scHpF"></div></div><span class="hp-num" id="scHpN">100</span></div>
+    <span class="nav-score" id="scSc">⭐ 0</span>
+    <span class="streak-badge" id="scStreak" style="display:none">🔥 0</span>
+    <span class="timer-badge" id="timerBadge" id="timerBadge">⏱ 30</span>
+    <button class="btn btn-outline" style="width:auto;padding:.35rem .7rem;font-size:.78rem;margin-top:0" onclick="showDash()">← Выйти</button>
+  </nav>
+  <div class="sc-inner">
+    <div class="sc-hdr">
+      <span class="sc-loc" id="scLoc">📍 Офис</span>
+      <div class="sc-prog"><div class="sc-prog-fill" id="scPF" style="width:0%"></div></div>
+      <span class="sc-num" id="scNum">1/4</span>
+      <button class="hint-btn" onclick="useHint()" id="hintBtn">💡 Подсказка (−10 HP)</button>
+    </div>
+    <div class="hint-box" id="hintBox"></div>
+    <div class="narrative-box" id="narBox"></div>
+    <div class="choices" id="choicesBox"></div>
+  </div>
+</div>
+ 
+<!-- MISSION COMPLETE -->
+<div id="completeScreen" class="screen">
+  <div class="comp-icon" id="compIcon">🏆</div>
+  <div class="comp-title" id="compTitle">Миссия пройдена!</div>
+  <div class="comp-sub" id="compSub"></div>
+  <div class="reward-card">
+    <div class="rw-row"><span>Очков получено</span><span class="rw-val" id="rwSc">+0</span></div>
+    <div class="rw-row"><span>Правильных ответов</span><span class="rw-val" id="rwCorr">0/0</span></div>
+    <div class="rw-row"><span>Оставшийся HP</span><span class="rw-val" id="rwHp">100</span></div>
+    <div class="rw-row"><span>Бонус серии</span><span class="rw-val" id="rwStreak">+0</span></div>
+    <div class="rw-row"><span>Лига</span><span class="rw-val" id="rwLg">🥉 Новичок</span></div>
+  </div>
+  <div style="display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center;margin-bottom:1.5rem">
+    <button class="btn btn-outline" style="max-width:180px" onclick="showDash()">← На главную</button>
+    <button class="btn" style="max-width:180px" onclick="showLeaderboard()">📊 Рейтинг</button>
+  </div>
+</div>
+ 
+<!-- LEADERBOARD -->
+<div id="leaderboardScreen" class="screen">
+  <nav>
+    <div class="nav-logo">🛡 CyberShield</div>
+    <div style="flex:1"></div>
+    <button class="btn btn-outline" style="width:auto;padding:.35rem .7rem;font-size:.78rem;margin-top:0" onclick="showDash()">← Назад</button>
+  </nav>
+  <div class="lb-inner">
+    <div class="lb-title">🏅 Таблица лидеров</div>
+    <div id="lbRows"></div>
+  </div>
+</div>
+ 
+<!-- OUTCOME OVERLAY -->
+<div class="outcome-overlay" id="outcomeOv">
+  <div class="outcome-box">
+    <div class="oc-icon" id="ocIcon"></div>
+    <div class="oc-title" id="ocTitle"></div>
+    <div class="oc-explain" id="ocExplain"></div>
+    <div class="conseq" id="consAnim"></div>
+    <div class="oc-tip" id="ocTip"></div>
+    <div class="hp-chg" id="hpChg"></div>
+    <button class="btn" onclick="nextScenario()">Продолжить →</button>
+  </div>
+</div>
+ 
+<!-- CERT MODAL -->
+<div class="cert-modal" id="certModal">
+  <div class="cert-wrap">
+    <div class="email-sent-banner" id="certEmailBanner">
+      <span class="icon">📧</span>
+      <div><strong>Сертификат отправлен!</strong><br><span style="color:var(--text2);font-size:.82rem">На адрес <span id="certEmailAddr" style="color:var(--text)">—</span></span></div>
+    </div>
+    <div class="cert-card">
+      <div class="cert-logo">🛡 CyberShield</div>
+      <div class="cert-sub">Банк Центр-Инвест · Образовательная платформа</div>
+      <div style="font-size:.82rem;color:var(--text2);margin-bottom:.5rem">Настоящим подтверждается, что</div>
+      <div class="cert-name" id="certName">—</div>
+      <div class="cert-seal">🛡️</div>
+      <div class="cert-desc">успешно завершил(а) курс «Защита персональных данных»<br>в симуляторе кибербезопасности CyberShield,<br>продемонстрировав устойчивые навыки распознавания киберугроз</div>
+      <div style="display:flex;justify-content:center;gap:1.5rem;margin-top:.8rem;font-size:.8rem;color:var(--text2)">
+        <div>Очков: <b id="certScore" style="color:var(--green3)">—</b></div>
+        <div>Дата: <b style="color:var(--text)" id="certDate">—</b></div>
+      </div>
+      <div class="cert-id" id="certId">ID: CS-000000</div>
+    </div>
+    <button class="btn btn-outline" onclick="document.getElementById('certModal').classList.remove('show')">Закрыть</button>
+  </div>
+</div>
+ 
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+ 
+<script>
+// ============================
+// DATA: MISSIONS + SCENARIOS
+// ============================
+ 
+const MISSIONS = [
+{
+  id:0, name:"Офис", icon:"🏢",
+  desc:"Рабочий день. Фишинг в почте, манипуляция в мессенджере, опасные находки и дипфейк от «CEO».",
+  tags:["Фишинг","Соц. инженерия","USB","Дипфейк"],
+  scenarios:[
+    {
+      id:"o1", type:"email", timer:0,
+      title:"📧 Корпоративная почта",
+      hint:"Обрати внимание на домен отправителя — он содержит дополнительные слова после настоящего домена.",
+      narrative:"Утро. Вы открываете почту. Письмо от «IT-отдела» с пометкой СРОЧНО.",
+      context:{
+        from:"it-support@centr-invest-bank.ru.security-update.com",
+        fromLabel:"IT Отдел (support)",
+        subject:"⚠️ СРОЧНО: Учётная запись заблокирована",
+        body:`Уважаемый сотрудник,
+ 
+Наша система зафиксировала подозрительную активность. Для восстановления доступа перейдите по ссылке и подтвердите данные:
+ 
+<span class="elink bad">http://centr-invest-secure.ru.phishing-site.xyz/login</span>
+ 
+Если не выполните в течение 24 часов — аккаунт будет удалён навсегда.
+ 
+IT-отдел безопасности`
+      },
+      question:"Что вы сделаете?",
+      choices:[
+        {t:"Перейти по ссылке и ввести данные — нужно срочно восстановить доступ!",c:false},
+        {t:"Переслать письмо всем коллегам, чтобы они тоже были осторожны",c:false},
+        {t:"Не переходить. Проверить домен отправителя и позвонить в IT напрямую",c:true},
+        {t:"Ответить на письмо и уточнить детали инцидента",c:false}
+      ],
+      correctExp:"Правильно! Домен «centr-invest-bank.ru.security-update.com» — фишинговый. Настоящий домен заканчивается на centr-invest.ru. IT-отделы никогда не запрашивают пароли по email.",
+      wrongExp:"Это фишинг! Введя данные, вы бы передали логин и пароль злоумышленнику. Домен отправителя — явный признак обмана.",
+      tip:"💡 Правило #1: всегда проверяй полный домен отправителя. Легитимные компании никогда не просят пароль по email.",
+      attack:"Фишинг (Phishing)", cons:["[АТАКА] Учётные данные перехвачены","[АТАКА] Вход в корпоративную систему","[АТАКА] Поиск конфиденциальных файлов...","[КРИТИЧНО] Утечка клиентской базы банка"],
+      sc:150, hp:30
+    },
+    {
+      id:"o2", type:"url_spot", timer:0,
+      title:"🔍 Анализ подозрительной ссылки",
+      hint:"Посмотри на имя домена внимательно — одна буква заменена на цифру.",
+      narrative:"Коллега прислал ссылку на «новую корпоративную систему». Прежде чем переходить, проверь URL.",
+      urlParts:[
+        {text:"https://",suspicious:false,label:"Протокол HTTPS — ОК"},
+        {text:"centr-inv3st",suspicious:true,label:"Тайпосквоттинг! '3' вместо 'e'"},
+        {text:"-bank.ru",suspicious:false,label:"Похоже на домен банка"},
+        {text:"/corporate",suspicious:false,label:"Путь — ОК"},
+        {text:"/login?redirect=true",suspicious:false,label:"Параметры — ОК"}
+      ],
+      question:"Кликни на подозрительную часть URL:",
+      correctExp:"Верно! «centr-inv3st» — тайпосквоттинг: цифра «3» вместо буквы «e». Визуально похоже, но ведёт на мошеннический сайт.",
+      wrongExp:"Эта часть URL в порядке. Подозрительная часть — «centr-inv3st»: цифра «3» заменяет букву «e».",
+      tip:"💡 Тайпосквоттинг: мошенники регистрируют домены с одной изменённой буквой. Читай URL по слогам перед нажатием.",
+      attack:"Тайпосквоттинг", cons:["[АТАКА] Переход на фишинговый сайт","[АТАКА] Сбор введённых учётных данных","[КРИТИЧНО] Компрометация корпоративного аккаунта"],
+      sc:180, hp:25
+    },
+    {
+      id:"o3", type:"messenger", timer:0,
+      title:"💬 Рабочий мессенджер",
+      hint:"Настоящий руководитель не стал бы просить пароль в мессенджере. Это может быть взломанный аккаунт.",
+      narrative:"В корпоративном чате пишет «директор». Он обычно не пишет лично.",
+      context:{
+        sender:"Александр Петров (Директор)",
+        msgs:[
+          "Привет! Я сейчас на важной встрече, писать не могу.",
+          "Срочно нужна помощь — система не пускает в клиентскую базу.",
+          "Передай временно свои данные для входа? Верну через час, очень срочно!"
+        ]
+      },
+      question:"Ваши действия?",
+      choices:[
+        {t:"Передать логин и пароль — директор срочно просит, нельзя подводить руководство",c:false},
+        {t:"Положить трубку и позвонить директору напрямую для проверки личности",c:true},
+        {t:"Передать только логин без пароля — так безопаснее",c:false},
+        {t:"Написать, что сначала нужно получить разрешение от HR",c:false}
+      ],
+      correctExp:"Верно! Это социальная инженерия — злоумышленник маскируется под руководителя, создавая срочность. Звонок — единственный способ проверить личность.",
+      wrongExp:"Социальная инженерия! Аккаунт директора мог быть взломан. Пароль нельзя передавать никому и никогда.",
+      tip:"💡 Никогда не передавай учётные данные через мессенджер. Даже «руководству». Всегда проверяй личность по телефону.",
+      attack:"Социальная инженерия", cons:["[АТАКА] Учётные данные получены","[АТАКА] Вход в CRM банка","[АТАКА] Скачивание клиентской базы (152 000 записей)","[КРИТИЧНО] Данные на продажу в даркнете"],
+      sc:200, hp:35
+    },
+    {
+      id:"o4", type:"usb", timer:0,
+      title:"💾 USB-находка",
+      hint:"Найденные носители — классическая приманка (Baiting). IT-специалисты проверяют их в изолированной среде.",
+      narrative:"На кухне офиса вы нашли USB-флешку с наклейкой «ЗАРПЛАТЫ 2024 Q4». Любопытно...",
+      context:null,
+      question:"Что вы сделаете?",
+      choices:[
+        {t:"Вставить в рабочий компьютер — вдруг там важные данные для компании",c:false},
+        {t:"Вставить в личный телефон — так безопаснее для рабочего ПК",c:false},
+        {t:"Отнести в IT-отдел не подключая ни к чему",c:true},
+        {t:"Выбросить — зачем рисковать",c:false}
+      ],
+      correctExp:"Правильно! Подброшенные флешки (Baiting) — реальная техника атаки. IT специалисты проверят носитель в изолированной среде безопасно.",
+      wrongExp:"USB Baiting! Подброшенная флешка содержит автозапуск с вредоносным кодом. Заражение происходит мгновенно при подключении.",
+      tip:"💡 Никогда не подключай найденные USB-носители. Злоумышленники оставляют их в офисах, лифтах, парковках. Сдавай в IT.",
+      attack:"USB Baiting", cons:["[АТАКА] Автозапуск: payload.exe","[АТАКА] Установка кейлоггера","[АТАКА] Сбор паролей из браузера","[КРИТИЧНО] Удалённое управление активировано"],
+      sc:180, hp:25
+    }
+  ]
+},
+{
+  id:1, name:"Дом", icon:"🏠",
+  desc:"Вечер дома. Подозрительные SMS, фальшивый сайт банка, звонок «из службы безопасности» и QR-коды.",
+  tags:["SMS-фишинг","Поддельный сайт","Вишинг","QR-фишинг"],
+  scenarios:[
+    {
+      id:"h1", type:"sms", timer:30,
+      title:"📱 Срочное SMS от банка",
+      hint:"Посмотри на домен в ссылке — там цифра вместо буквы. Это тайпосквоттинг.",
+      narrative:"Вечером приходит SMS. На счету есть деньги, вы нервничаете.",
+      context:{
+        sender:"BANK-ALERT",
+        text:"Ваша карта заблокирована! Подозрительная операция на 47 800 руб. Разблокировать: http://centr-inv3st-bank.ru/unblock?id=29471\n\nИгнорируйте если не вы. Карта будет аннулирована через 2 часа."
+      },
+      question:"У вас 30 секунд — ваши действия?",
+      choices:[
+        {t:"Немедленно перейти по ссылке и разблокировать карту!",c:false},
+        {t:"Позвонить на номер с обратной стороны карты и уточнить у банка",c:true},
+        {t:"Написать ответное SMS с просьбой объяснить подробнее",c:false},
+        {t:"Скачать приложение банка по ссылке из SMS",c:false}
+      ],
+      correctExp:"Отлично! Таймер — психологическое давление. Звонок на официальный номер банка с карты — единственно верный шаг. Домен «centr-inv3st» с '3' вместо 'e' — тайпосквоттинг.",
+      wrongExp:"Smishing + таймер-ловушка! Срочность — инструмент давления. Ссылка фишинговая, домен поддельный. Банки никогда не блокируют карту из-за бездействия по SMS.",
+      tip:"💡 Срочность в SMS = тревожный сигнал. Банк не аннулирует карту за 2 часа. Звони только на номер с обратной стороны карты.",
+      attack:"SMS-фишинг (Smishing)", cons:["[АТАКА] Данные карты введены на фишинге","[АТАКА] CVV и срок перехвачены","[АТАКА] Транзакция 47 800 руб.","[КРИТИЧНО] Средства переведены мошеннику"],
+      sc:160, hp:30
+    },
+    {
+      id:"h2", type:"url_spot", timer:0,
+      title:"🌐 Проверка сайта банка",
+      hint:"Обрати внимание на протокол — используется HTTP вместо HTTPS.",
+      narrative:"Хочешь войти в онлайн-банк. Перед тобой адресная строка браузера — проверь её внимательно.",
+      urlParts:[
+        {text:"http://",suspicious:true,label:"Нет HTTPS! Соединение не шифруется"},
+        {text:"centr-invest",suspicious:false,label:"Название совпадает"},
+        {text:"-online.ru",suspicious:false,label:"Домен похож на настоящий"},
+        {text:"/account",suspicious:false,label:"Путь — ОК"},
+        {text:"/login",suspicious:false,label:"Страница входа"}
+      ],
+      question:"Найди опасную часть URL:",
+      correctExp:"Правильно! HTTP без HTTPS означает отсутствие шифрования. Все данные, включая пароль, передаются в открытом виде. Банки всегда используют HTTPS.",
+      wrongExp:"Главная опасность — «http://» вместо «https://». Отсутствие шифрования означает, что пароль можно перехватить в сети.",
+      tip:"💡 Всегда проверяй 🔒 и HTTPS в адресе. Финансовые сайты — только через закладки, которые ты сам добавил.",
+      attack:"Поддельный сайт / Фарминг", cons:["[АТАКА] Пароль онлайн-банка перехвачен","[АТАКА] Вход выполнен от имени жертвы","[КРИТИЧНО] Перевод всех средств"],
+      sc:170, hp:30
+    },
+    {
+      id:"h3", type:"call", timer:0,
+      title:"📞 Звонок «из банка»",
+      hint:"Настоящий банк НИКОГДА не запрашивает CVV и SMS-коды по телефону. Это 100% мошенник.",
+      narrative:"Звонит незнакомый номер. Мужчина представляется сотрудником службы безопасности банка.",
+      context:{
+        caller:"+7 (800) 200-00-01 (внешне похож на официальный)",
+        script:"«Нами зафиксирована попытка взлома вашего аккаунта. Для защиты назовите последние 4 цифры карты, CVV с обратной стороны и код из SMS, который придёт прямо сейчас»"
+      },
+      question:"Что сделаете?",
+      choices:[
+        {t:"Назвать всё запрошенное — нужно срочно защитить счёт!",c:false},
+        {t:"Назвать только последние 4 цифры — это же не секрет",c:false},
+        {t:"Положить трубку. Самостоятельно перезвонить в банк по номеру с карты",c:true},
+        {t:"Попросить перезвонить позже и пока заморозить карту через приложение",c:false}
+      ],
+      correctExp:"Верно! Вишинг — голосовой фишинг. Банк никогда не просит CVV и SMS-коды по телефону. Положить трубку и перезвонить самому — единственно правильное действие.",
+      wrongExp:"Вишинг! CVV + SMS-код = полный доступ для онлайн-платежей. Мошенник знает твоё имя и банк — это не значит, что он сотрудник.",
+      tip:"💡 Банки НИКОГДА не запрашивают CVV и коды из SMS по телефону. Даже если звонящий знает часть данных — это мошенник.",
+      attack:"Вишинг (Voice Phishing)", cons:["[АТАКА] CVV получен","[АТАКА] SMS-код 2FA перехвачен","[АТАКА] Онлайн-платёж 89 000 руб.","[КРИТИЧНО] Карта опустошена"],
+      sc:200, hp:35
+    },
+    {
+      id:"h4", type:"qr", timer:0,
+      title:"📷 QR-код в магазине",
+      hint:"Перед сканированием QR убедись, что он напечатан официально, а не наклеен поверх оригинала.",
+      narrative:"В магазине на кассе наклейка с QR-кодом: «Оплатить через телефон быстрее!». Вы наводите камеру — телефон показывает адрес перехода.",
+      context:{
+        qrUrl:"http://pay-centr-invest.ru.pay-quick.xyz/checkout?amount=auto"
+      },
+      question:"Что вы сделаете?",
+      choices:[
+        {t:"Перейти по ссылке и оплатить — удобно и быстро!",c:false},
+        {t:"Не переходить. Домен подозрительный — оплатить наличными или через официальное приложение",c:true},
+        {t:"Перейти, но не вводить данные карты — просто посмотреть",c:false},
+        {t:"Спросить кассира — если он скажет «да», значит всё ОК",c:false}
+      ],
+      correctExp:"Правильно! QR-фишинг (Quishing). Домен «pay-quick.xyz» — посторонний сайт. Настоящие платёжные QR-коды ведут на официальные домены банков.",
+      wrongExp:"Quishing (QR-фишинг)! Мошенники наклеивают поддельные QR-коды прямо на официальные. Домен «pay-quick.xyz» не имеет отношения к банку.",
+      tip:"💡 Перед QR-оплатой проверяй домен в адресной строке. Поддельные наклейки с QR — распространённый способ кражи данных карт.",
+      attack:"QR-фишинг (Quishing)", cons:["[АТАКА] Переход на фишинговый платёжный сайт","[АТАКА] Данные карты введены","[КРИТИЧНО] Средства списаны мошенником"],
+      sc:170, hp:25
+    }
+  ]
+},
+{
+  id:2, name:"Публичный Wi-Fi", icon:"📡",
+  desc:"Работа из кафе. Evil Twin, MITM, скимминг в банкомате и выбор надёжного пароля.",
+  tags:["Evil Twin","MITM","Скимминг","Пароли"],
+  scenarios:[
+    {
+      id:"w1", type:"wifi", timer:0,
+      title:"📡 Выбор Wi-Fi сети",
+      hint:"Очень сильный сигнал у открытой сети рядом с тобой — признак Evil Twin. Злоумышленник держит роутер рядом.",
+      narrative:"Ты в кафе, нужен интернет. В списке несколько похожих сетей.",
+      context:{
+        networks:[
+          {name:"CafeWifi_FREE",sig:"████",sec:false,note:"Открытая сеть"},
+          {name:"CafeWiFi",sig:"███░",sec:true,note:"Спросить пароль у персонала"},
+          {name:"CafeWifi_FREE_5G",sig:"█████",sec:false,note:"Очень сильный сигнал!"},
+          {name:"AndroidHotspot_7731",sig:"██░░",sec:true,note:"Чья-то точка доступа"}
+        ]
+      },
+      question:"К какой сети подключишься?",
+      choices:[
+        {t:"CafeWifi_FREE — без пароля, удобно",c:false},
+        {t:"CafeWiFi — спросить пароль у персонала и подключиться",c:true},
+        {t:"CafeWifi_FREE_5G — самый сильный сигнал = лучшее соединение",c:false},
+        {t:"AndroidHotspot_7731 — защищённая, значит безопасная",c:false}
+      ],
+      correctExp:"Правильно! CafeWiFi с паролем — официальная сеть кафе. Сети FREE с очень сильным сигналом — признак Evil Twin: злоумышленник стоит рядом с собственным роутером.",
+      wrongExp:"Evil Twin! Самый сильный сигнал часто означает, что роутер злоумышленника находится прямо рядом с тобой. Открытые сети позволяют перехватывать весь трафик.",
+      tip:"💡 Уточняй точное название Wi-Fi у персонала. Самый сильный сигнал у открытой сети = подозрение на Evil Twin.",
+      attack:"Evil Twin / Атака на Wi-Fi", cons:["[АТАКА] Подключение к Evil Twin точке","[АТАКА] Весь трафик перехватывается","[АТАКА] Cookie сессий захвачены","[КРИТИЧНО] Угон аккаунтов"],
+      sc:180, hp:25
+    },
+    {
+      id:"w2", type:"password", timer:0,
+      title:"🔑 Выбор надёжного пароля",
+      hint:"Надёжный пароль: длинный (12+ символов), с заглавными, строчными, цифрами и спецсимволами. Избегай словарных слов.",
+      narrative:"IT-отдел просит сменить пароль к корпоративной системе. Нужно выбрать надёжный вариант.",
+      passwords:[
+        {pw:"qwerty123",strength:"weak",label:"Очень слабый"},
+        {pw:"Ivan1990",strength:"weak",label:"Слабый"},
+        {pw:"Rabota2024!",strength:"medium",label:"Средний"},
+        {pw:"xK9#mP2$vL8@nQ",strength:"strong",label:"Надёжный"}
+      ],
+      question:"Выбери наиболее надёжный пароль:",
+      correctPwIdx:3,
+      correctExp:"Правильно! «xK9#mP2$vL8@nQ» — 14 символов, смешанный регистр, цифры и спецсимволы. Перебор займёт миллиарды лет. Используй менеджер паролей для хранения.",
+      wrongExp:"Этот пароль небезопасен. Короткие пароли, словарные слова, даты рождения и имена взламываются за секунды.",
+      tip:"💡 Правило сильного пароля: 12+ символов, заглавные+строчные+цифры+спецсимволы. Используй менеджер паролей — не нужно запоминать.",
+      attack:"Атака перебором (Brute Force)", cons:["[АТАКА] Слабый пароль подобран за 3 секунды","[АТАКА] Вход в корпоративный аккаунт","[КРИТИЧНО] Утечка корпоративных данных"],
+      sc:170, hp:20
+    },
+    {
+      id:"w3", type:"mitm", timer:0,
+      title:"💳 Банковская операция в кафе",
+      hint:"Мобильный интернет (4G/5G) — зашифрованный канал оператора. Публичный Wi-Fi всегда уязвим.",
+      narrative:"Ты уже в кафе, подключён к Wi-Fi. Нужно срочно перевести 50 000 руб. контрагенту — дедлайн через час.",
+      context:{situation:"Ты подключён к публичному Wi-Fi кафе. Онлайн-банк через браузер доступен. Дедлайн горит."},
+      question:"Как проведёшь платёж?",
+      choices:[
+        {t:"Открыть онлайн-банк через Wi-Fi кафе — времени нет, HTTPS же есть",c:false},
+        {t:"Отключиться от Wi-Fi и использовать мобильный интернет (4G)",c:true},
+        {t:"Включить режим инкогнито — это шифрует соединение",c:false},
+        {t:"Использовать VPN-приложение из Google Play и потом войти в банк",c:false}
+      ],
+      correctExp:"Правильно! 4G/5G — зашифрованный канал оператора. Публичный Wi-Fi уязвим для MITM даже с HTTPS (SSL Stripping). Финансовые операции — только через мобильный интернет.",
+      wrongExp:"MITM-атака! В публичной сети злоумышленник подменяет сертификат и расшифровывает HTTPS. Режим инкогнито не шифрует сетевой трафик — он только не сохраняет историю.",
+      tip:"💡 Публичный Wi-Fi + банковские операции = недопустимо. Мобильный интернет или проверенный корпоративный VPN.",
+      attack:"MITM (Man-in-the-Middle)", cons:["[АТАКА] SSL Stripping активирован","[АТАКА] HTTPS заменён на HTTP","[АТАКА] Данные авторизации перехвачены","[КРИТИЧНО] Реквизиты подменены — перевод ушёл мошеннику"],
+      sc:200, hp:35
+    },
+    {
+      id:"w4", type:"atm", timer:0,
+      title:"🏧 Банкомат в ТЦ",
+      hint:"Настоящий кардридер жёстко зафиксирован. Если он шатается — это скиммер. Также смотри на толщину клавиатуры.",
+      narrative:"Нужно снять наличные. В ТЦ есть банкомат. Подходишь — кое-что кажется не так.",
+      context:{clues:["Кардридер чуть выступает вперёд и слегка шатается","Накладка клавиатуры выглядит толще обычного","Рядом стоит человек, смотрящий в телефон в сторону банкомата"]},
+      question:"Что сделаете?",
+      choices:[
+        {t:"Снять деньги побыстрее — некогда разглядывать банкомат",c:false},
+        {t:"Потянуть кардридер рукой. Если шатается — не использовать, сообщить охране и в банк",c:true},
+        {t:"Прикрыть клавиатуру рукой при вводе PIN и снять",c:false},
+        {t:"Попросить незнакомца отойти и тогда снять",c:false}
+      ],
+      correctExp:"Правильно! Физическая проверка кардридера — первый шаг. Настоящий кардридер не должен шататься. При подозрении — не использовать, сообщить в банк и охране.",
+      wrongExp:"Скимминг! Накладки копируют данные карты и PIN. Прикрытие рукой не спасёт, если на клавиши наложена накладка с датчиками давления.",
+      tip:"💡 Перед банкоматом: потяни кардридер — он жёстко зафиксирован. Предпочитай банкоматы в отделениях банка под камерами.",
+      attack:"Скимминг (Card Skimming)", cons:["[АТАКА] Данные карты скопированы","[АТАКА] PIN записан накладкой на клавиши","[АТАКА] Изготовление клона карты","[КРИТИЧНО] Обнуление счёта в другом городе"],
+      sc:170, hp:30
+    }
+  ]
+},
+{
+  id:3, name:"Смартфон", icon:"📱",
+  desc:"Настройка нового рабочего смартфона. Поддельные APK, шпионские разрешения, дипфейк-звонок от CEO и выбор надёжного метода 2FA.",
+  tags:["Поддельный APK","Разрешения","Дипфейк","2FA"],
+  scenarios:[
+    {
+      id:"m1", type:"messenger", timer:0,
+      title:"📲 Установка «корпоративного» приложения",
+      hint:"Официальные корпоративные приложения устанавливаются через Google Play, MDM или официальный магазин компании — никогда через ссылку на APK.",
+      narrative:"Коллега пишет в WhatsApp: IT прислал новое приложение для отчётности. Просит установить APK-файл по ссылке и включить «установку из неизвестных источников».",
+      context:{
+        sender:"Коллега Максим",
+        msgs:[
+          "Привет! IT-отдел выпустил новое приложение для отчётности.",
+          "Вот ссылка, скачай и установи: http://corp-apps-download.ru/report_v2.apk",
+          "Нужно в настройках включить «Установку из неизвестных источников», иначе не поставится"
+        ]
+      },
+      question:"Что сделаете?",
+      choices:[
+        {t:"Скачать APK, включить установку из неизвестных источников и установить",c:false},
+        {t:"Не устанавливать. Уточнить у IT-отдела официальный способ получения приложения",c:true},
+        {t:"Скачать APK и проверить антивирусом перед установкой",c:false},
+        {t:"Попросить коллегу прислать файл напрямую, а не ссылкой",c:false}
+      ],
+      correctExp:"Верно! APK вне официальных магазинов — серьёзный риск. IT-отдел распространяет приложения через Google Play, MDM или корпоративный портал. Аккаунт коллеги мог быть взломан для рассылки.",
+      wrongExp:"Вредоносный APK! Файлы из сторонних источников могут содержать трояны и кейлоггеры. Просьба включить «установку из неизвестных источников» — обход защиты Google Play Protect.",
+      tip:"💡 Устанавливай приложения только из Google Play / App Store. Просьба включить «установку из неизвестных источников» = красный флаг.",
+      attack:"Вредоносный APK / Trojan",
+      cons:["[АТАКА] APK установлен, разрешения приняты","[АТАКА] Кейлоггер активен — все нажатия записываются","[АТАКА] Перехват SMS и кодов двухфакторки","[КРИТИЧНО] Полный доступ к банковским приложениям"],
+      sc:180, hp:30
+    },
+    {
+      id:"m2", type:"perms", timer:0,
+      title:"⚙️ Разрешения приложения-фонарика",
+      hint:"Фонарику нужна только камера (для вспышки). Всё остальное — микрофон, контакты, GPS — это сбор данных о тебе.",
+      narrative:"Устанавливаешь приложение-фонарик из Google Play. При установке оно запрашивает список разрешений. Нажми на ЛИШНЕЕ разрешение.",
+      permissions:[
+        {name:"Камера",icon:"📷",suspicious:false,reason:"Нужна для включения вспышки — это нормально"},
+        {name:"Контакты",icon:"👥",suspicious:true,reason:"Фонарику не нужны контакты — это сбор данных!"},
+        {name:"Микрофон",icon:"🎙️",suspicious:true,reason:"Фонарику не нужен микрофон — это прослушка!"},
+        {name:"Местоположение GPS",icon:"📍",suspicious:true,reason:"Фонарику не нужно твоё местоположение!"},
+        {name:"Хранилище",icon:"💾",suspicious:false,reason:"Может использоваться для сохранения настроек"}
+      ],
+      question:"Нажми на разрешение, которое фонарику явно не нужно:",
+      correctExp:"Правильно! Фонарику нужна только камера (вспышка) и, возможно, хранилище. Контакты, микрофон и GPS — это шпионаж. Такие приложения собирают и продают твои данные.",
+      wrongExp:"Это разрешение ещё можно объяснить. Явно лишние — контакты, микрофон, GPS: фонарик физически не нуждается в них для своей функции.",
+      tip:"💡 Правило минимума привилегий: давай приложению только то, что нужно для его работы. Фонарик = только камера. Всё остальное — откажи.",
+      attack:"Шпионское ПО / Избыточные разрешения",
+      cons:["[АТАКА] Контакты скопированы (847 записей)","[АТАКА] Фоновый микрофон активирован","[АТАКА] Геолокация передаётся каждые 5 минут","[КРИТИЧНО] Данные проданы рекламным брокерам"],
+      sc:170, hp:20
+    },
+    {
+      id:"m3", type:"deepfake", timer:0,
+      title:"🎥 Видеозвонок от CEO",
+      hint:"Признаки дипфейка: размытые края лица, неестественное моргание (редкое или отсутствует), рассинхрон губ и звука, неравномерное освещение лица.",
+      narrative:"Тебе звонит CEO компании по видеосвязи с незнакомого номера. Он просит срочно перевести 200 000 руб. на «партнёрский счёт» для закрытия сделки. Говорит — сделка сорвётся через 30 минут.",
+      context:{
+        clues:[
+          "Лицо CEO размытое по краям — границы нечёткие",
+          "Моргание неестественное — слишком редкое",
+          "Губы иногда двигаются не в такт словам",
+          "Звонок с незнакомого номера, не через корпоративный Slack",
+          "Сильная срочность: «30 минут — иначе сделка сорвётся»"
+        ]
+      },
+      question:"Ваши действия?",
+      choices:[
+        {t:"Перевести деньги — вижу CEO на видео, значит это точно он",c:false},
+        {t:"Отложить звонок, написать CEO в корпоративный мессенджер и согласовать с финдиректором",c:true},
+        {t:"Спросить у CEO секретное кодовое слово — если знает, значит это он",c:false},
+        {t:"Перевести половину суммы как компромисс на случай срочности",c:false}
+      ],
+      correctExp:"Верно! Дипфейк-мошенничество (Deepfake Fraud). Видео с лицом реального человека генерируется AI в реальном времени. Любой финансовый перевод требует подтверждения через официальный канал, вне зависимости от «видеодоказательств».",
+      wrongExp:"Дипфейк! AI способен воспроизвести лицо и голос любого человека в реальном времени. Видеозвонок — не гарантия личности. Срочность — инструмент давления, чтобы ты не успел проверить.",
+      tip:"💡 Дипфейк-признаки: размытые края лица, редкое моргание, рассинхрон губ. Финансовые операции подтверждаются ТОЛЬКО письменно через официальные каналы.",
+      attack:"Дипфейк-мошенничество (Deepfake Fraud)",
+      cons:["[АТАКА] Перевод 200 000 руб. выполнен","[АТАКА] Счёт получателя — подставная фирма","[АТАКА] Средства выведены через криптовалюту","[КРИТИЧНО] Деньги невозможно вернуть"],
+      sc:220, hp:40
+    },
+    {
+      id:"m4", type:"two_fa", timer:0,
+      title:"🔐 Выбор метода двухфакторной аутентификации",
+      hint:"SMS — наименее защищённый метод 2FA: SIM-карту можно клонировать, а SMS перехватить через уязвимость SS7 в сети оператора.",
+      narrative:"IT-отдел просит настроить двухфакторную аутентификацию для корпоративного аккаунта. Выбери наиболее надёжный метод.",
+      methods:[
+        {name:"SMS-код на телефон",icon:"📱",level:"weak",label:"Слабый"},
+        {name:"Код на email",icon:"📧",level:"weak",label:"Слабый"},
+        {name:"Приложение-аутентификатор (TOTP)",icon:"🔑",level:"strong",label:"Надёжный"},
+        {name:"Аппаратный ключ (YubiKey)",icon:"🗝️",level:"best",label:"Максимальный"}
+      ],
+      question:"Какой метод 2FA выбрать для корпоративного аккаунта?",
+      correctMethodIdx:2,
+      correctExp:"Правильно! TOTP-аутентификатор (Google Authenticator, Yandex Key) генерирует коды локально на устройстве — нельзя перехватить через SS7. Аппаратный ключ — ещё надёжнее, но аутентификатор — оптимальный баланс удобства и защиты.",
+      wrongExp:"Этот метод уязвим. SMS перехватываются через SS7-атаки или при клонировании SIM. Email компрометируется при фишинге. Аутентификатор или аппаратный ключ — правильный выбор.",
+      tip:"💡 Надёжность 2FA: аппаратный ключ > аутентификатор (TOTP) > SMS > email. SMS — худший вариант: SS7-атака позволяет перехватить код за секунды.",
+      attack:"SIM Swapping / SS7-атака на 2FA",
+      cons:["[АТАКА] SMS-код перехвачен через SS7","[АТАКА] Вход в корпоративный аккаунт выполнен","[КРИТИЧНО] Полный доступ к корпоративным системам"],
+      sc:190, hp:25
+    }
+  ]
+}
+];
+ 
+const LEAGUES=[
+  {min:0,name:"Новичок",icon:"🥉"},
+  {min:600,name:"Защитник",icon:"🥈"},
+  {min:1200,name:"Аналитик",icon:"🥇"},
+  {min:1800,name:"Эксперт",icon:"🏆"}
+];
+ 
+const SKILLS_MAP={
+  "Фишинг":"🎣","Тайпосквоттинг":"🔤","Соц. инженерия":"🎭",
+  "USB Baiting":"💾","Smishing":"📱","Вишинг":"📞",
+  "Evil Twin":"📡","MITM":"🔓","Скимминг":"💳",
+  "QR-фишинг":"📷","Brute Force":"🔑","Поддельный сайт":"🌐",
+  "Вредоносный APK":"📲","Шпионское ПО":"🔍","Дипфейк-мошенничество":"🎥","SIM Swapping":"🔐"
+};
+ 
+const MOCK_LB=[
+  {name:"Анна К.",score:2050,missions:3,league:"🏆 Эксперт"},
+  {name:"Дмитрий Р.",score:1820,missions:3,league:"🏆 Эксперт"},
+  {name:"Мария С.",score:1580,missions:3,league:"🥇 Аналитик"},
+  {name:"Иван П.",score:1240,missions:2,league:"🥇 Аналитик"},
+  {name:"Елена В.",score:980,missions:2,league:"🥈 Защитник"},
+  {name:"Сергей Т.",score:710,missions:1,league:"🥈 Защитник"},
+  {name:"Ольга М.",score:480,missions:1,league:"🥉 Новичок"}
+];
+ 
+// ============================
+// STATE
+// ============================
+let S={
+  user:null,hp:100,score:0,
+  correctAnswers:0,totalAnswers:0,
+  completedMissions:[],streak:0,maxStreak:0,
+  learnedSkills:[],
+  currentMission:null,currentIdx:0,
+  missionScore:0,missionCorrect:0,
+  urlTries:0,
+  retryQueue:[],inRetry:false,retryIdx:0
+};
+ 
+let timerInterval=null;
+let timeLeft=0;
+let hintUsed=false;
+ 
+function loadS(){
+  try{const d=localStorage.getItem('cs_state');if(d)Object.assign(S,JSON.parse(d));}catch(e){}
+}
+function saveS(){
+  localStorage.setItem('cs_state',JSON.stringify({
+    user:S.user,hp:S.hp,score:S.score,
+    correctAnswers:S.correctAnswers,totalAnswers:S.totalAnswers,
+    completedMissions:S.completedMissions,streak:S.streak,
+    maxStreak:S.maxStreak,learnedSkills:S.learnedSkills
+  }));
+}
+ 
+// ============================
+// AUTH
+// ============================
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  document.getElementById('loginForm').style.display=t==='login'?'block':'none';
+  document.getElementById('registerForm').style.display=t==='register'?'block':'none';
+  document.querySelectorAll('.tab')[t==='login'?0:1].classList.add('active');
+}
+ 
+function getUsers(){
+  const def={demo:{name:"Демо Игрок",username:"demo",email:"demo@example.com",ph:hashP("demo123")}};
+  try{const u=localStorage.getItem('cs_users');return u?{...def,...JSON.parse(u)}:def;}catch(e){return def;}
+}
+function saveUsers(u){localStorage.setItem('cs_users',JSON.stringify(u));}
+function hashP(p){let h=0;for(let c of p){h=((h<<5)-h)+c.charCodeAt(0);h|=0;}return String(h);}
+ 
+function doLogin(){
+  const u=document.getElementById('lu').value.trim();
+  const p=document.getElementById('lp').value;
+  const users=getUsers();
+  const err=document.getElementById('lErr');
+  if(users[u]&&users[u].ph===hashP(p)){
+    S.user=users[u];loadS();S.user=users[u];
+    err.style.display='none';showDash();
+  }else{err.style.display='block';}
+}
+ 
+function doRegister(){
+  const n=document.getElementById('rn').value.trim();
+  const u=document.getElementById('ru').value.trim();
+  const e=document.getElementById('re').value.trim();
+  const p=document.getElementById('rp').value;
+  const err=document.getElementById('rErr');
+  if(!n||!u||!p){err.textContent='Заполните все поля';err.style.display='block';return;}
+  if(p.length<6){err.textContent='Пароль минимум 6 символов';err.style.display='block';return;}
+  const users=getUsers();
+  if(users[u]){err.textContent='Логин занят';err.style.display='block';return;}
+  users[u]={name:n,username:u,email:e||'',ph:hashP(p)};
+  saveUsers(users);
+  S={...S,user:users[u],hp:100,score:0,correctAnswers:0,totalAnswers:0,
+    completedMissions:[],streak:0,maxStreak:0,learnedSkills:[]};
+  saveS();err.style.display='none';showDash();
+}
+ 
+function confirmReset(){
+  if(confirm('Сбросить весь прогресс? Очки, миссии и HP обнулятся.')){
+    S.hp=100;S.score=0;S.correctAnswers=0;S.totalAnswers=0;
+    S.completedMissions=[];S.streak=0;S.maxStreak=0;S.learnedSkills=[];
+    saveS();showDash();showToast('🔄 Прогресс сброшен');
+  }
+}
+ 
+// ============================
+// SCREENS
+// ============================
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+ 
+function getLeague(sc){
+  let l=LEAGUES[0];for(const x of LEAGUES){if(sc>=x.min)l=x;}return l;
+}
+ 
+function showDash(){
+  stopTimer();
+  updateHpDisplay();
+  const name=S.user?S.user.name:'Игрок';
+  const init=name[0].toUpperCase();
+  document.getElementById('dashAv').textContent=init;
+  document.getElementById('navAv').textContent=init;
+  document.getElementById('dashHi').textContent='Привет, '+name.split(' ')[0]+'!';
+  const lg=getLeague(S.score);
+  document.getElementById('lgIcon').textContent=lg.icon;
+  document.getElementById('lgName').textContent=lg.name;
+  const succ=S.totalAnswers>0?Math.round(S.correctAnswers/S.totalAnswers*100):0;
+  document.getElementById('stScore').textContent=S.score;
+  document.getElementById('stSucc').textContent=succ+'%';
+  document.getElementById('stMiss').textContent=S.completedMissions.length+'/'+MISSIONS.length;
+  document.getElementById('stStreak').textContent='🔥'+S.maxStreak;
+  document.getElementById('navSc').textContent='⭐ '+S.score;
+  if(S.streak>1){
+    document.getElementById('navStreak').textContent='🔥 '+S.streak;
+    document.getElementById('navStreak').style.display='inline-block';
+  }else{document.getElementById('navStreak').style.display='none';}
+  const done=S.completedMissions.length;
+  if(done===MISSIONS.length){
+    document.getElementById('dashSub').textContent='🏆 Все миссии пройдены! Ты эксперт!';
+  }else{
+    document.getElementById('dashSub').textContent=(MISSIONS.length-done)+' миссий осталось. Продолжай!';
+  }
+  // Skills
+  const sr=document.getElementById('skillsRow');
+  sr.innerHTML='';
+  if(S.learnedSkills.length===0){
+    sr.innerHTML='<span style="font-size:.82rem;color:var(--text2)">Пройди миссии чтобы получить навыки защиты</span>';
+  }else{
+    S.learnedSkills.forEach(sk=>{
+      const ic=SKILLS_MAP[sk]||'🔒';
+      const span=document.createElement('span');
+      span.className='tag g';span.style.fontSize='.8rem';span.style.padding='.25rem .6rem';
+      span.textContent=ic+' '+sk;sr.appendChild(span);
+    });
+  }
+  // Cert btn
+  const allDone=S.completedMissions.length===MISSIONS.length;
+  document.getElementById('dashCertBtn').style.display=allDone?'inline-block':'none';
+ 
+  // Missions
+  const grid=document.getElementById('mGrid');grid.innerHTML='';
+  MISSIONS.forEach((m,i)=>{
+    const done=S.completedMissions.includes(m.id);
+    const locked=i>0&&!S.completedMissions.includes(MISSIONS[i-1].id);
+    const totalSc=m.scenarios.reduce((a,s)=>a+s.sc,0);
+    const card=document.createElement('div');
+    card.className='mission-card'+(done?' completed':'')+(locked?' locked':'');
+    card.innerHTML=`
+      <div class="m-icon">${m.icon}</div>
+      <div class="m-name">${m.name} <span style="font-size:.72rem;color:var(--text2);">(${m.scenarios.length} сцен.)</span></div>
+      <div class="m-desc">${m.desc}</div>
+      <div class="tags">${m.tags.map(t=>'<span class="tag">'+t+'</span>').join('')}</div>
+      <div class="m-progress"><div class="m-progress-fill" style="width:${done?100:0}%"></div></div>
+      ${done?'<div style="margin-top:.5rem;font-size:.8rem;color:var(--green3)">✓ Завершено</div>':
+       locked?'<div style="margin-top:.5rem;font-size:.8rem;color:var(--text2)">🔒 Пройди предыдущую</div>':
+       '<button class="btn" style="margin-top:.6rem;padding:.45rem;font-size:.82rem" onclick="event.stopPropagation();startMission('+i+')">Начать →</button>'}
+    `;
+    grid.appendChild(card);
+  });
+  showScreen('dashScreen');
+}
+ 
+function showLeaderboard(){
+  stopTimer();
+  const myEntry={
+    name:S.user?S.user.name:'Вы',
+    score:S.score,missions:S.completedMissions.length,
+    league:getLeague(S.score).icon+' '+getLeague(S.score).name,isMe:true
+  };
+  const all=[...MOCK_LB,myEntry].sort((a,b)=>b.score-a.score);
+  const rows=document.getElementById('lbRows');rows.innerHTML='';
+  all.forEach((p,i)=>{
+    const sym=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.';
+    const row=document.createElement('div');
+    row.className='lb-row'+(p.isMe?' me':'');
+    row.innerHTML=`
+      <div class="lb-rank">${sym}</div>
+      <div class="lb-av" style="background:${p.isMe?'var(--green)':'var(--bg3)'}">${p.name[0]}</div>
+      <div class="lb-name">${p.name}${p.isMe?'<span style="color:var(--green3);font-size:.75rem"> (вы)</span>':''}</div>
+      <span class="lb-badge">${p.league}</span>
+      <div>
+        <div class="lb-score">⭐ ${p.score}</div>
+        <div class="lb-missions">${p.missions}/4 миссий</div>
+      </div>
+    `;
+    rows.appendChild(row);
+  });
+  showScreen('leaderboardScreen');
+}
+ 
+// ============================
+// TIMER
+// ============================
+function startTimer(sec){
+  stopTimer();
+  timeLeft=sec;
+  const badge=document.getElementById('timerBadge');
+  badge.style.display='inline-block';
+  updateTimerDisplay();
+  timerInterval=setInterval(()=>{
+    timeLeft--;
+    updateTimerDisplay();
+    if(timeLeft<=0){stopTimer();autoFail();}
+  },1000);
+}
+function stopTimer(){
+  if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
+  const b=document.getElementById('timerBadge');if(b)b.style.display='none';
+}
+function updateTimerDisplay(){
+  const b=document.getElementById('timerBadge');
+  if(b){b.textContent='⏱ '+timeLeft+'с';b.style.borderColor=timeLeft<=10?'var(--red)':'var(--yellow)';b.style.color=timeLeft<=10?'var(--red)':'var(--yellow)';}
+}
+function autoFail(){
+  const mission=MISSIONS[S.currentMission];
+  const sc=S.inRetry?mission.scenarios[S.retryQueue[S.retryIdx]]:mission.scenarios[S.currentIdx];
+  document.querySelectorAll('.choice-btn').forEach(b=>b.disabled=true);
+  S.totalAnswers++;S.hp=Math.max(0,S.hp-sc.hp);S.streak=0;
+  if(!S.inRetry&&!S.retryQueue.includes(S.currentIdx))S.retryQueue.push(S.currentIdx);
+  updateHpDisplay();saveS();
+  showOutcome(false,sc,true);
+}
+ 
+// ============================
+// HINT
+// ============================
+function useHint(){
+  if(hintUsed)return;
+  const mission=MISSIONS[S.currentMission];
+  const sc=S.inRetry?mission.scenarios[S.retryQueue[S.retryIdx]]:mission.scenarios[S.currentIdx];
+  if(S.hp<=10){showToast('Недостаточно HP для подсказки');return;}
+  hintUsed=true;
+  S.hp=Math.max(0,S.hp-10);
+  updateHpDisplay();saveS();
+  const hb=document.getElementById('hintBox');
+  hb.textContent='💡 '+sc.hint;hb.style.display='block';
+  document.getElementById('hintBtn').disabled=true;
+  document.getElementById('hintBtn').textContent='💡 Использована';
+  showToast('−10 HP за подсказку');
+}
+ 
+// ============================
+// MISSION / SCENARIO
+// ============================
+function startMission(idx){
+  S.currentMission=idx;S.currentIdx=0;
+  S.missionScore=0;S.missionCorrect=0;
+  S.hp=100;S.retryQueue=[];S.inRetry=false;S.retryIdx=0;
+  renderScenario();showScreen('scenarioScreen');
+}
+ 
+function renderScenario(){
+  stopTimer();hintUsed=false;
+  updateHpDisplay();
+  const mission=MISSIONS[S.currentMission];
+  const sc=S.inRetry?mission.scenarios[S.retryQueue[S.retryIdx]]:mission.scenarios[S.currentIdx];
+  const total=mission.scenarios.length;
+  document.getElementById('scLoc').textContent=mission.icon+' '+mission.name+(S.inRetry?' 🔄':'');
+  document.getElementById('scNum').textContent=S.inRetry
+    ?('🔄 Повтор '+(S.retryIdx+1)+'/'+S.retryQueue.length)
+    :((S.currentIdx+1)+'/'+total);
+  document.getElementById('scPF').style.width=(S.inRetry
+    ?(S.retryIdx/S.retryQueue.length*100)
+    :(S.currentIdx/total*100))+'%';
+  document.getElementById('hintBox').style.display='none';
+  document.getElementById('hintBox').textContent='';
+  const hBtn=document.getElementById('hintBtn');
+  hBtn.disabled=false;hBtn.textContent='💡 Подсказка (−10 HP)';
+  if(S.streak>1){
+    document.getElementById('scStreak').textContent='🔥 '+S.streak;
+    document.getElementById('scStreak').style.display='inline-block';
+  }else{document.getElementById('scStreak').style.display='none';}
+ 
+  // Build narrative
+  const nb=document.getElementById('narBox');
+  nb.innerHTML=`<div class="narrative-title">
+    ${sc.title}
+    <span class="attack-badge">${sc.attack}</span>
+    ${sc.timer>0?'<span style="color:var(--red);font-size:.7rem">⏱ Таймер!</span>':''}
+  </div>
+  <p style="margin-bottom:.5rem">${sc.narrative}</p>
+  ${renderContext(sc)}`;
+ 
+  // Build choices
+  const cb=document.getElementById('choicesBox');
+  cb.innerHTML='';
+ 
+  if(sc.type==='url_spot'){
+    renderUrlSpot(sc,cb);
+  }else if(sc.type==='password'){
+    renderPasswordChallenge(sc,cb);
+  }else if(sc.type==='perms'){
+    renderPermsChallenge(sc,cb);
+  }else if(sc.type==='two_fa'){
+    renderTwoFaChallenge(sc,cb);
+  }else{
+    cb.innerHTML='<div class="q-label">'+sc.question+'</div>';
+    const letters=['А','Б','В','Г'];
+    sc.choices.forEach((c,i)=>{
+      const btn=document.createElement('button');
+      btn.className='choice-btn';
+      btn.innerHTML=`<span class="c-letter">${letters[i]}</span>${c.t}`;
+      btn.onclick=()=>selectChoice(i,c.c,sc);
+      cb.appendChild(btn);
+    });
+  }
+ 
+  if(sc.timer>0)startTimer(sc.timer);
+  S.urlTries=0;
+}
+ 
+function renderContext(sc){
+  if(!sc.context)return '';
+  const ctx=sc.context;
+  if(sc.type==='email'){
+    return `<div class="email-sim">
+      <div class="email-hdr">
+        <div class="ef"><span>От:</span><span style="color:var(--red)">${ctx.fromLabel} &lt;${ctx.from}&gt;</span></div>
+        <div class="ef"><span>Тема:</span><span>${ctx.subject}</span></div>
+      </div>
+      <div class="email-body">${ctx.body}</div>
+    </div>`;
+  }
+  if(sc.type==='messenger'){
+    return `<div class="msg-sim">
+      ${ctx.msgs.map(m=>`<div class="msg"><div class="msg-sndr">${ctx.sender}</div>${m}</div>`).join('')}
+    </div>`;
+  }
+  if(sc.type==='sms'){
+    return `<div class="sms-sim">
+      <div class="sms-sndr">От: ${ctx.sender}</div>
+      <div class="sms-bbl">${ctx.text.replace(/\n/g,'<br>')}</div>
+    </div>`;
+  }
+  if(sc.type==='call'){
+    return `<div class="msg-sim">
+      <div style="font-size:.78rem;color:var(--text2);margin-bottom:.4rem">📞 Входящий: ${ctx.caller}</div>
+      <div class="msg"><div class="msg-sndr">Звонящий</div>${ctx.script}</div>
+    </div>`;
+  }
+  if(sc.type==='wifi'){
+    return `<div class="wifi-sim">
+      <div style="font-size:.78rem;color:var(--text2);margin-bottom:.6rem">Доступные сети:</div>
+      <ul class="wifi-list">
+        ${ctx.networks.map(n=>`<li class="wifi-item ${n.sec?'ok':n.sig.includes('█████')?'bad':'neu'}">
+          <span>${n.sec?'🔒':'🔓'} ${n.name}</span>
+          <span style="font-size:.75rem;color:var(--text2)">${n.sig} ${n.note}</span>
+        </li>`).join('')}
+      </ul>
+    </div>`;
+  }
+  if(sc.type==='mitm'){
+    return `<div class="info-box">📍 ${ctx.situation}</div>`;
+  }
+  if(sc.type==='atm'){
+    return `<div class="warn-box">
+      <div style="font-size:.78rem;color:var(--yellow);margin-bottom:.4rem">🔍 Ты замечаешь:</div>
+      ${ctx.clues.map(c=>'<div style="margin-bottom:.25rem">• '+c+'</div>').join('')}
+    </div>`;
+  }
+  if(sc.type==='qr'){
+    return `<div class="qr-sim">
+      <div class="qr-img">▓▒░▓░▒▓<br>░▓▓░▒▓░<br>▓░▒▓▓░▒</div>
+      <div style="font-size:.78rem;color:var(--text2);margin-top:.4rem">Телефон распознал URL:</div>
+      <div class="qr-url">${ctx.qrUrl}</div>
+    </div>`;
+  }
+  if(sc.type==='deepfake'){
+    return `<div class="deepfake-sim">
+      <div class="df-video">
+        <span class="df-face">👤</span>
+        <span class="df-badge">⚠️ Deepfake?</span>
+      </div>
+      <div style="font-size:.78rem;color:var(--yellow);margin-bottom:.4rem;font-weight:600">🔍 Ты замечаешь признаки подозрительного звонка:</div>
+      ${ctx.clues.map(c=>`<div class="df-clue">${c}</div>`).join('')}
+    </div>`;
+  }
+  if(sc.type==='perms'||sc.type==='two_fa'){return '';}
+  return '';
+}
+ 
+// URL SPOT interactive
+function renderUrlSpot(sc,cb){
+  cb.innerHTML=`<div class="q-label">${sc.question}</div>
+  <div class="url-inspector-wrap">
+    <div class="url-inspector-label">👆 Нажми на подозрительную часть URL:</div>
+    <div class="url-inspector" id="urlInspector"></div>
+    <div class="url-inspector-hint" id="urlHint">Нажми на часть URL, которая выглядит подозрительно</div>
+  </div>`;
+  const inspector=document.getElementById('urlInspector');
+  sc.urlParts.forEach((part,i)=>{
+    const span=document.createElement('span');
+    span.className='url-part';
+    span.textContent=part.text;
+    span.onclick=()=>handleUrlClick(i,sc,inspector);
+    inspector.appendChild(span);
+  });
+}
+ 
+function handleUrlClick(idx,sc,inspector){
+  const parts=inspector.querySelectorAll('.url-part');
+  const clicked=parts[idx];
+  const isSuspicious=sc.urlParts[idx].suspicious;
+  S.urlTries++;
+ 
+  if(isSuspicious){
+    clicked.classList.add('clicked-right');
+    document.getElementById('urlHint').textContent='✅ '+sc.urlParts[idx].label;
+    parts.forEach(p=>p.onclick=null);
+    setTimeout(()=>{
+      const isCorrect=true;
+      S.totalAnswers++;S.correctAnswers++;
+      S.score+=sc.sc;S.missionScore+=sc.sc;S.missionCorrect++;
+      S.streak++;if(S.streak>S.maxStreak)S.maxStreak=S.streak;
+      S.hp=Math.min(100,S.hp+(S.inRetry?15:10));
+      updateHpDisplay();saveS();showOutcome(isCorrect,sc);
+    },600);
+  }else{
+    clicked.classList.add('clicked-wrong');
+    document.getElementById('urlHint').textContent='❌ '+sc.urlParts[idx].label+' — попробуй ещё раз';
+    setTimeout(()=>clicked.classList.remove('clicked-wrong'),600);
+    if(S.urlTries>=3){
+      // reveal all
+      parts.forEach(p=>p.onclick=null);
+      sc.urlParts.forEach((part,i)=>{
+        parts[i].classList.add(part.suspicious?'revealed-bad':'revealed-ok');
+      });
+      setTimeout(()=>{
+        S.totalAnswers++;S.hp=Math.max(0,S.hp-Math.floor(sc.hp/2));S.streak=0;
+        if(!S.inRetry&&!S.retryQueue.includes(S.currentIdx))S.retryQueue.push(S.currentIdx);
+        updateHpDisplay();saveS();showOutcome(false,sc);
+      },1200);
+    }
+  }
+}
+ 
+// PASSWORD challenge
+function renderPasswordChallenge(sc,cb){
+  cb.innerHTML=`<div class="q-label">${sc.question}</div><div class="pw-list" id="pwList"></div>`;
+  const list=document.getElementById('pwList');
+  const shuffled=[...sc.passwords].sort(()=>Math.random()-.5);
+  shuffled.forEach((pw,i)=>{
+    const div=document.createElement('div');
+    div.className='pw-item';
+    div.innerHTML=`<span>${pw.pw}</span><span class="pw-strength ${pw.strength}">${pw.label}</span>`;
+    const origIdx=sc.passwords.indexOf(pw);
+    div.onclick=()=>{
+      list.querySelectorAll('.pw-item').forEach(el=>el.onclick=null);
+      const isCorrect=origIdx===sc.correctPwIdx;
+      div.style.borderColor=isCorrect?'var(--green)':'var(--red)';
+      div.style.background=isCorrect?'#0d2818':'#2d0f0f';
+      // highlight correct
+      if(!isCorrect){
+        const correctPw=sc.passwords[sc.correctPwIdx].pw;
+        list.querySelectorAll('.pw-item').forEach(el=>{
+          if(el.querySelector('span').textContent===correctPw){
+            el.style.borderColor='var(--green)';el.style.background='#0d2818';
+          }
+        });
+      }
+      setTimeout(()=>{
+        S.totalAnswers++;
+        if(isCorrect){S.correctAnswers++;S.score+=sc.sc;S.missionScore+=sc.sc;S.missionCorrect++;S.streak++;if(S.streak>S.maxStreak)S.maxStreak=S.streak;S.hp=Math.min(100,S.hp+(S.inRetry?15:10));}
+        else{S.hp=Math.max(0,S.hp-sc.hp);S.streak=0;if(!S.inRetry&&!S.retryQueue.includes(S.currentIdx))S.retryQueue.push(S.currentIdx);}
+        updateHpDisplay();saveS();showOutcome(isCorrect,sc);
+      },600);
+    };
+    list.appendChild(div);
+  });
+}
+ 
+// PERMISSIONS challenge
+function renderPermsChallenge(sc,cb){
+  cb.innerHTML=`<div class="q-label">${sc.question}</div><div class="perms-list" id="permsList"></div>`;
+  const list=document.getElementById('permsList');
+  sc.permissions.forEach((perm,i)=>{
+    const div=document.createElement('div');
+    div.className='perm-item';
+    div.innerHTML=`<span class="perm-icon">${perm.icon}</span><span class="perm-name">${perm.name}</span><span class="perm-hint" id="ph${i}">${perm.reason}</span>`;
+    div.onclick=()=>{
+      list.querySelectorAll('.perm-item').forEach(el=>el.onclick=null);
+      const isBad=perm.suspicious;
+      if(isBad){
+        div.classList.add('correct-bad');
+        document.getElementById('ph'+i).style.display='block';
+        document.getElementById('ph'+i).style.color='var(--red)';
+        setTimeout(()=>{
+          S.totalAnswers++;S.correctAnswers++;S.score+=sc.sc;S.missionScore+=sc.sc;S.missionCorrect++;
+          S.streak++;if(S.streak>S.maxStreak)S.maxStreak=S.streak;
+          S.hp=Math.min(100,S.hp+(S.inRetry?15:10));
+          updateHpDisplay();saveS();showOutcome(true,sc);
+        },700);
+      }else{
+        div.classList.add('wrong');
+        document.getElementById('ph'+i).style.display='block';
+        document.getElementById('ph'+i).style.color='var(--green3)';
+        // reveal all suspicious
+        sc.permissions.forEach((p,j)=>{
+          if(p.suspicious){
+            list.querySelectorAll('.perm-item')[j].classList.add('revealed-bad');
+            const ph=document.getElementById('ph'+j);if(ph){ph.style.display='block';ph.style.color='var(--red)';}
+          }
+        });
+        setTimeout(()=>{
+          S.totalAnswers++;S.hp=Math.max(0,S.hp-sc.hp);S.streak=0;
+          if(!S.inRetry&&!S.retryQueue.includes(S.currentIdx))S.retryQueue.push(S.currentIdx);
+          updateHpDisplay();saveS();showOutcome(false,sc);
+        },1000);
+      }
+    };
+    list.appendChild(div);
+  });
+}
+ 
+// 2FA challenge
+function renderTwoFaChallenge(sc,cb){
+  cb.innerHTML=`<div class="q-label">${sc.question}</div><div class="twofa-list" id="tfaList"></div>`;
+  const list=document.getElementById('tfaList');
+  sc.methods.forEach((m,i)=>{
+    const div=document.createElement('div');
+    div.className='twofa-item';
+    div.innerHTML=`<span style="font-size:1.3rem">${m.icon}</span><span style="flex:1">${m.name}</span><span class="twofa-level ${m.level}">${m.label}</span>`;
+    div.onclick=()=>{
+      list.querySelectorAll('.twofa-item').forEach(el=>el.onclick=null);
+      const isCorrect=i===sc.correctMethodIdx||m.level==='best';
+      div.style.borderColor=isCorrect?'var(--green)':'var(--red)';
+      div.style.background=isCorrect?'#0d2818':'#2d0f0f';
+      if(!isCorrect){
+        list.querySelectorAll('.twofa-item')[sc.correctMethodIdx].style.borderColor='var(--green)';
+        list.querySelectorAll('.twofa-item')[sc.correctMethodIdx].style.background='#0d2818';
+      }
+      setTimeout(()=>{
+        S.totalAnswers++;
+        if(isCorrect){S.correctAnswers++;S.score+=sc.sc;S.missionScore+=sc.sc;S.missionCorrect++;S.streak++;if(S.streak>S.maxStreak)S.maxStreak=S.streak;S.hp=Math.min(100,S.hp+(S.inRetry?15:10));}
+        else{S.hp=Math.max(0,S.hp-sc.hp);S.streak=0;if(!S.inRetry&&!S.retryQueue.includes(S.currentIdx))S.retryQueue.push(S.currentIdx);}
+        updateHpDisplay();saveS();showOutcome(isCorrect,sc);
+      },600);
+    };
+    list.appendChild(div);
+  });
+}
+ 
+function selectChoice(idx,isCorrect,sc){
+  stopTimer();
+  document.querySelectorAll('.choice-btn').forEach(b=>b.disabled=true);
+  document.querySelectorAll('.choice-btn')[idx].classList.add(isCorrect?'correct':'wrong');
+  S.totalAnswers++;
+  if(isCorrect){
+    S.correctAnswers++;S.score+=sc.sc;S.missionScore+=sc.sc;S.missionCorrect++;
+    S.streak++;if(S.streak>S.maxStreak)S.maxStreak=S.streak;
+    S.hp=Math.min(100,S.hp+(S.inRetry?15:10));
+  }else{
+    S.hp=Math.max(0,S.hp-sc.hp);S.streak=0;
+    if(!S.inRetry&&!S.retryQueue.includes(S.currentIdx))S.retryQueue.push(S.currentIdx);
+  }
+  updateHpDisplay();saveS();showOutcome(isCorrect,sc);
+}
+ 
+function showOutcome(isCorrect,sc,timedOut=false){
+  document.getElementById('ocIcon').textContent=isCorrect?'✅':'❌';
+  document.getElementById('ocTitle').textContent=timedOut?'Время вышло!':(isCorrect?'Угроза нейтрализована!':'Вы попались!');
+  document.getElementById('ocTitle').className='oc-title '+(isCorrect?'ok':'fail');
+  document.getElementById('ocExplain').textContent=timedOut?'Вы не успели принять решение. '+sc.wrongExp:(isCorrect?sc.correctExp:sc.wrongExp);
+  document.getElementById('ocTip').innerHTML=`<strong>🎯 Тип атаки: ${sc.attack}</strong><br>${sc.tip}`;
+ 
+  // Streak bonus display
+  let hpText='';
+  if(isCorrect){
+    const bonus=S.streak>2?Math.floor(sc.sc*0.1*(S.streak-1)):0;
+    const hpGain=S.inRetry?15:10;
+    hpText=`+${sc.sc} очков${bonus>0?` (+${bonus} 🔥)`:''}  ·  +${hpGain} HP ❤️`;
+    document.getElementById('hpChg').className='hp-chg plus';
+  }else{
+    hpText=`−${sc.hp} HP`;
+    document.getElementById('hpChg').className='hp-chg minus';
+  }
+  document.getElementById('hpChg').textContent=hpText;
+ 
+  // Learn skill
+  if(isCorrect&&sc.attack&&!S.learnedSkills.includes(sc.attack.split(' ')[0])){
+    const skillName=sc.attack.split(' (')[0];
+    if(!S.learnedSkills.includes(skillName)){S.learnedSkills.push(skillName);saveS();}
+  }
+ 
+  // Consequences
+  const ca=document.getElementById('consAnim');
+  if(!isCorrect&&sc.cons){
+    ca.style.display='block';ca.innerHTML='';
+    sc.cons.forEach((line,i)=>{
+      setTimeout(()=>{
+        const d=document.createElement('div');
+        d.className='conseq-line';d.textContent=line;ca.appendChild(d);
+      },i*350);
+    });
+  }else{ca.style.display='none';}
+ 
+  document.getElementById('outcomeOv').classList.add('show');
+}
+ 
+function nextScenario(){
+  document.getElementById('outcomeOv').classList.remove('show');
+  const mission=MISSIONS[S.currentMission];
+  if(S.inRetry){
+    S.retryIdx++;
+    if(S.retryIdx>=S.retryQueue.length){
+      completeMission();
+    }else{
+      renderScenario();
+    }
+  }else{
+    S.currentIdx++;
+    if(S.currentIdx>=mission.scenarios.length){
+      if(S.retryQueue.length>0){
+        S.inRetry=true;S.retryIdx=0;
+        showToast('🔄 Повтор ошибок: '+S.retryQueue.length+' задани'+(S.retryQueue.length>1?'й':'е'));
+        renderScenario();
+      }else{
+        completeMission();
+      }
+    }else{
+      renderScenario();
+    }
+  }
+}
+ 
+function completeMission(){
+  stopTimer();
+  const mId=MISSIONS[S.currentMission].id;
+  if(!S.completedMissions.includes(mId))S.completedMissions.push(mId);
+  saveS();
+ 
+  const total=MISSIONS[S.currentMission].scenarios.length;
+  const lg=getLeague(S.score);
+  const allDone=S.completedMissions.length===MISSIONS.length;
+  const streakBonus=S.streak>2?Math.floor(S.missionScore*0.05*S.streak):0;
+ 
+  const allCorrect=S.missionCorrect===total;
+  document.getElementById('compIcon').textContent=allCorrect?'🏆':'🛡';
+  document.getElementById('compTitle').textContent=allCorrect?'Миссия пройдена!':'Миссия завершена';
+  document.getElementById('compSub').textContent=`Миссия "${MISSIONS[S.currentMission].name}" — ${allCorrect?'все задания выполнены верно!':'продолжай тренироваться!'}`;
+  document.getElementById('rwSc').textContent='+'+S.missionScore;
+  document.getElementById('rwCorr').textContent=S.missionCorrect+'/'+total;
+  document.getElementById('rwHp').textContent=S.hp+' HP';
+  document.getElementById('rwStreak').textContent=streakBonus>0?'+'+streakBonus+' 🔥':'—';
+  document.getElementById('rwLg').textContent=lg.icon+' '+lg.name;
+ 
+  showScreen('completeScreen');
+ 
+  if(allDone){
+    setTimeout(()=>showCertModal(),1200);
+  }
+}
+ 
+// ============================
+// CERTIFICATE
+// ============================
+function showCertModal(){
+  const name=S.user?S.user.name:'Игрок';
+  const email=S.user?S.user.email:'';
+  document.getElementById('certName').textContent=name;
+  document.getElementById('certScore').textContent=S.score+' очков';
+  document.getElementById('certDate').textContent=new Date().toLocaleDateString('ru-RU');
+  document.getElementById('certId').textContent='ID: CS-'+Math.abs(hashP(name+S.score)).toString().slice(0,8).toUpperCase();
+ 
+  const banner=document.getElementById('certEmailBanner');
+  const addrEl=document.getElementById('certEmailAddr');
+  if(email){
+    addrEl.textContent=email;
+    banner.style.display='flex';
+  }else{
+    banner.style.display='none';
+  }
+ 
+  document.getElementById('certModal').classList.add('show');
+  if(email){
+    showToast('📧 Сертификат отправлен на '+email);
+  }
+}
+ 
+// ============================
+// UI HELPERS
+// ============================
+function updateHpDisplay(){
+  const hp=S.hp;const pct=hp+'%';
+  const col=hp>60?'var(--green3)':hp>30?'var(--yellow)':'var(--red)';
+  ['navHpF','scHpF'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.style.width=pct;el.style.background=col;}
+  });
+  ['navHpN','scHpN'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.textContent=hp;el.style.color=col;}
+  });
+  ['navSc','scSc'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.textContent='⭐ '+S.score;
+  });
+}
+ 
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+ 
+// ============================
+// INIT
+// ============================
+loadS();
+if(!S.hp||S.hp<0)S.hp=100;
+if(S.user&&S.user.username){
+  document.getElementById('lu').value=S.user.username;
+}
+</script>
+</body>
+</html>
